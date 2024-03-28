@@ -1,19 +1,18 @@
 import React, { createContext, useState } from 'react';
-import StateInterface from './types/StateInterface';
-
-type ContextType = {
-  state: StateInterface,
-  setState: React.Dispatch<React.SetStateAction<StateInterface>>
-}
+import { ContextInterface, StateInterface}  from './types';
 
 const initialState: StateInterface = {
-  theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'
+  theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',
+  DATA: {},
+  allOptions: [],
+  selectedOption: 'World', 
+  selectedYear: 2021,
 }
 
-export const Context = createContext<ContextType>({
+export const Context = createContext<ContextInterface>({
   state: initialState,
   setState: () => {} 
-}) as React.Context<ContextType>;
+}) as React.Context<ContextInterface>;
 
 export const Provider = (props: any) => {
   const [state, setState] = useState<StateInterface>(initialState);

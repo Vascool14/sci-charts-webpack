@@ -1,14 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Context } from '../Context';
-import StateInterface from '../types/StateInterface';
+import { ContextInterface } from '../types';
 import Toggle from './Toggle';
 
 export default function NavBar() {
-    const { state, setState } = useContext<{
-        state: StateInterface, 
-        setState: React.Dispatch<React.SetStateAction<StateInterface>>
-    }>(Context);
+    const { state, setState } = useContext<ContextInterface>(Context);
 
     // for hiding navbar on scroll
     const [prevScrollPos, setPrevScrollPos] = useState(0);
