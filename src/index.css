@@ -1,0 +1,149 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+/* the user downloades "Poppins", a 1.5kb .ttf file, if not already cached */
+
+:root {
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+
+    color-scheme: light dark;
+    background-color: var(--bg);
+    color: var(--text);
+
+    /* CSS Variables: > */  
+    --text: #f5f5f5;
+    --bg: #1e1e1e;
+    --primary: #38f;
+    --gray: #7776;
+    
+    --sidePadding: 7vw;
+    --padding: 1rem;
+    --radius: 0.5rem;
+    --navHeight: 4.5rem;
+
+    --timing: cubic-bezier(0.175, 0.885, 0.32, 1.275); /* for bouncy transitions */
+}
+@media (prefers-color-scheme: light) {
+    :root {
+        --text: #222;
+        --bg: #f1f1f1;
+    }
+}
+[data-theme="light"] {
+    --text: #242424;
+    --bg: #f5f5f5;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+    background-color: var(--primary);
+    color: var(--bg)
+}
+
+body, html, #root{
+    margin: 0;
+    padding: 0;
+    /* overflow-x: hidden; */
+    background-color: var(--bg);
+}
+
+a{
+    text-decoration: none;
+    color: inherit;
+}
+
+img{
+    object-fit: cover;
+}
+
+h1, h2, h3, h4, p {
+    font-weight: 400;
+    line-height: 1.5;
+    margin: 0;
+}
+
+h1{ font-size: calc(2rem + 1vw); font-weight: 700; }
+h2{ font-size: calc(1.6rem + 0.5vw); }
+h3{ font-size: calc(1.4rem + 0.3vw) }
+h4{ font-size: calc(1.2rem + 0.2vw) }
+p, span{ font-size: calc(0.9rem + 0.1vw) }
+hr{ border-color: var(--bg-darker); }
+
+/* Important styles ^ ^ ^ ^ ^ ^  */
+
+main{
+    min-height: calc(100vh - var(--navHeight)); 
+    min-height: calc(100dvh - var(--navHeight)); /* "dvh" for modern browsers */
+
+    width: 100%;
+    padding: var(--padding);
+    background-color: var(--bg);
+}
+
+nav {
+    position: fixed;
+    height: var(--navHeight);
+    width: 100%;
+    padding: var(--padding);
+    background-color: var(--bg);
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    z-index: 100;
+    left: 0;
+    transition: all 0.3s var(--timing);
+}
+
+.responsive-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--padding);
+}
+
+.graph-container{
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    border: 1px solid var(--gray); 
+    padding: var(--padding);
+}
+
+/* for screens bigger than 640px */
+@media (min-width: 640px){
+    nav {
+        padding: var(--padding) var(--sidePadding);
+    }
+    main {
+        margin-top: var(--navHeight);
+    }
+    nav{
+        top: 0;
+        border-bottom: solid 1px var(--gray);
+    }
+    .responsive-container{
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}
+
+/* for screens smaller than 640px */
+@media (max-width: 640px){
+    nav{
+        justify-content: space-around;
+        bottom: 0;
+        border-top: 1px solid var(--gray);
+    }
+    main{
+        margin-bottom: var(--navHeight);
+    }
+}
