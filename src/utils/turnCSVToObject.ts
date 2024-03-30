@@ -8,9 +8,9 @@ export default function turnCSVToObject(csv: string): any {
         const country = row[0].trim();
         const year = parseInt(row[2].trim());
 
-        // Extract patent data and replace empty strings with 0
+        // replace empty strings with 0
         const patents = row.slice(3).map(patent => patent.trim() === '' ? 0 : parseInt(patent.trim()));
-
+        
         if (!DATA[country]) {
             DATA[country] = {
                 xValues: [],

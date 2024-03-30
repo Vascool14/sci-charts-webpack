@@ -36,6 +36,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3",
     "scichart": "^3.3.575",
-    "scichart-example-dependencies": "^0.1.7"
+    "scichart-example-dependencies": "^0.1.7",
+    "scichart-react": "^0.1.8"
   }
 }
