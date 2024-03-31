@@ -1200,12 +1200,13 @@ var CSVData = `Entity,Code,Year,Number of patents in electric vehicle machine te
     World,OWID_WRL,2019,12217,23742,5478,4504,26013
     World,OWID_WRL,2020,9039,20387,3778,3217,23282
     World,OWID_WRL,2021,2776,6595,1131,1107,7752`;
-const newData = turnCSVToObject(CSVData);
+
+const parsedData = turnCSVToObject(CSVData);
 
 const initialState: StateInterface = {
   theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',
-  DATA: newData,
-  allOptions: Object.keys(newData),
+  DATA: parsedData,
+  allOptions: Object.keys(parsedData),
   selectedOption: 'World', 
   selectedYear: 2018,
 }

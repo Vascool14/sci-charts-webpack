@@ -16,7 +16,8 @@ import {
     XyDataSeries,
     ZoomExtentsModifier,
     ZoomPanModifier,
-    EExecuteOn,
+    EventHandler,
+    SeriesSelectedArgs,
     ELegendPlacement,
 } from "scichart";
 
@@ -56,14 +57,17 @@ async function drawExample(DATA: DataInterface, option: string) {
             fill: COLORS[i],
             strokeThickness: 0,
             opacity: 1,
-            stackedGroupId: "StackedGroupId"
+            stackedGroupId: "StackedGroupId",
         });
         stackedColumnCollection.add(rendSeries);
     }
 
     // To add the series to the chart, put them in a StackedColumnCollection
     stackedColumnCollection.dataPointWidth = 0.6;
-    stackedColumnCollection.animation = new WaveAnimation({ duration: 1000, fadeEffect: true });
+    stackedColumnCollection.animation = new WaveAnimation({ duration: 300, fadeEffect: true });
+    
+    // on click events
+    const selected: EventHandler<SeriesSelectedArgs> = new EventHandler<SeriesSelectedArgs>();
 
     // Add the Stacked Column collection to the chart
     sciChartSurface.renderableSeries.add(stackedColumnCollection);
@@ -84,7 +88,7 @@ async function drawExample(DATA: DataInterface, option: string) {
             textColor: 'var(--text)',
             showLegend: true,
             showSeriesMarkers: true,
-            showCheckboxes: true,
+            showCheckboxes: true
         })
     );
 
@@ -121,7 +125,7 @@ export default function StackedColumnChart() {
             });
         };
     }, []);
-
+    
     return (
         <section className="graph-container">
                 <h4>Annual patents filed for electric vehicle technologies, World</h4>
