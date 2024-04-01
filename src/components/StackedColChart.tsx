@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef } from "react";
 // import { appTheme } from "scichart-example-dependencies";
 import { ContextInterface, DataInterface } from "../types";
 import { Context } from "../Context";
-import { COLORS } from "../utils/constants";
+import { COLORS, SERIES_NAME } from "../utils/constants";
 import {
     ELegendOrientation,
     ENumericFormat,
@@ -47,13 +47,12 @@ async function drawExample(DATA: DataInterface, option: string) {
         })
     );
     
-    const SERIES = ['EV machine tech', 'EV storage', 'EV management', 'EV communication tech', 'EV charging stations']
     const stackedColumnCollection = new StackedColumnCollection(wasmContext);
 
     // Create some RenderableSeries - for each part of the stacked column
     for (let i = 0; i < DATA[option].yValues?.length; i++) {
         const rendSeries = new StackedColumnRenderableSeries(wasmContext, {
-            dataSeries: new XyDataSeries(wasmContext, { xValues: DATA[option].xValues, yValues: DATA[option].yValues[i], dataSeriesName: SERIES[i] }),
+            dataSeries: new XyDataSeries(wasmContext, { xValues: DATA[option].xValues, yValues: DATA[option].yValues[i], dataSeriesName: SERIES_NAME[i] }),
             fill: COLORS[i],
             strokeThickness: 0,
             opacity: 1,
@@ -131,7 +130,7 @@ export default function StackedColumnChart() {
                 <h4>Annual patents filed for electric vehicle technologies, World</h4>
                 <p>Figures in recent years are subject to a time lag; submitted patents may not yet be reflected in the data.</p>
                 <div style={{display: "flex", margin: '1rem 0', width: "100%", gap: '1rem'}}>
-                    <select style={{marginLeft: 'auto', color: 'var(--text)'}}
+                    <select style={{marginLeft: 'auto', color: 'var(--text)', background: 'var(--bg)'}}
                         value={selectedOption}
                         onChange={(e) => {
                             setState({ ...state, selectedOption: e.target.value });
@@ -145,7 +144,7 @@ export default function StackedColumnChart() {
                         ))}
                     </select>
                 </div>
-                <div id={DIV_ELEMENT_ID} style={{flex: 1, borderRadius: 4, overflow: 'hidden'}} />
+                <div id={DIV_ELEMENT_ID} className="graph" />
         </section>
     );
 }

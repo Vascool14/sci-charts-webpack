@@ -126,6 +126,12 @@ nav {
     border-radius: 8px;
 }
 
+.graph{
+    flex: 1;
+    border-radius: 4;
+    overflow: hidden;
+}
+
 /* for screens smaller than 640px */
 @media (max-width: 640px){
     nav{

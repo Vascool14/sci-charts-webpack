@@ -1,40 +1,51 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { ContextInterface, DataInterface } from "../types";
 import { Context } from "../Context";
-import { COLORS } from "../utils/constants";
+import { COLORS, SERIES_NAME } from "../utils/constants";
 import {
     SciChartPieSurface,
     EPieType,
-    SciChartJsNavyTheme,
     PieSegment,
     SciChartSurface,
-    StackedColumnCollection,
-    ELegendPlacement,
     ELegendOrientation,
-    GradientParams,
-    Point
+    ELegendPlacement,
 } from "scichart";
 
 const DIV_ELEMENT_ID = "chart2";
 
-async function drawExample(DATA: DataInterface, option: string) {
+async function drawExample(DATA: DataInterface, option: string, year: number) {
     // Create a SciChartSurface
     const sciChartPieSurface = await SciChartPieSurface.create(DIV_ELEMENT_ID, {
         // theme: new SciChartJsNavyTheme(),
         pieType: EPieType.Pie,
-        animate: true,
+        showLegend: true,
+        showLegendSeriesMarkers: true,
+        animateLegend: true,
+        seriesSpacing: 1,
     });
-    
-    sciChartPieSurface.legend.showLegend = false;
 
-    const yearStats = DATA[option].yValues;
-    const yearLabels = DATA[option].xValues;
+    // ensure the chart shows something, even if the year from another chart may be absent
+    const validYears = DATA[option].xValues;
+    if (!validYears.includes(year)) {
+        year = validYears[validYears.length - 1];
+        console.log("Year not found, using last year: ", year);
+        
+    }
+    // here "validYears" is the same as "xValues"
 
-    for (let i = 0; i < yearStats.length; i++) {
+    // get the yValues for the selected year
+    var yValues:number[] = [];
+    const yValuesAllTime:any = DATA[option].yValues;
+    for (let i = 0; i < yValuesAllTime.length; i++) {
+        yValues.push(yValuesAllTime[i][DATA[option].xValues.indexOf(year)]);
+    }
+
+    // Create PieSegments
+    for(let i = 0; i < yValues.length; i++) {
         const pieSegment = new PieSegment({
             color: COLORS[i],
-            value: yearStats[1][i],
-            text: "Year " + yearLabels[i],
+            value: yValues[i],
+            text: `${SERIES_NAME[i]}`
         });
         sciChartPieSurface.pieSegments.add(pieSegment);
     }
@@ -42,15 +53,12 @@ async function drawExample(DATA: DataInterface, option: string) {
 
 // React component needed as our examples app is in React
 export default function PieChart() {
-    const { state } = useContext<ContextInterface>(Context);
+    const { state, setState } = useContext<ContextInterface>(Context);
     const { DATA, selectedOption, selectedYear } = state;
     
-    // drawExample(DATA, selectedOption); // this rerenders the whole chart
-
     const sciChartSurfaceRef = useRef<SciChartSurface>();
-    const stackedColumnCollectionRef = useRef<StackedColumnCollection>();
     useEffect(() => {
-        const chartInitializationPromise = drawExample(DATA, selectedOption);
+        const chartInitializationPromise = drawExample(DATA, selectedOption, selectedYear);
 
         // Delete sciChartSurface on unmount component to prevent memory leak
         return () => {
@@ -65,12 +73,32 @@ export default function PieChart() {
                 sciChartSurfaceRef.current?.delete();
             });
         };
-    }, [selectedOption, selectedYear]);
+    }, [selectedYear]);
+
+    function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
+        const newYear = parseInt(e.target.value);
+        setState({ ...state, selectedYear: newYear });
+        drawExample(DATA, selectedOption, newYear);
+    }
 
     return (
         <section className="graph-container">
-            <h4 style={{margin: '0 auto 10px auto'}}>{state.selectedOption}, {state.selectedYear}</h4>
-            <div id={DIV_ELEMENT_ID} style={{flex: 1, borderRadius: 4, overflow: 'hidden'}} />
+            {/* select year */}
+            <div style={{display: 'flex', gap:'1rem', marginBottom: '1rem', justifyContent: 'center'}}>
+                <h4>{state.selectedOption}</h4> 
+                <select style={{color: 'var(--text)', background: 'var(--bg)', marginTop: '6px'}}
+                    value={selectedYear}
+                    onChange={(e) => handleYearChange(e)}
+                >
+                    {DATA[selectedOption].xValues.sort().map((year: number) => (
+                        <option key={year} value={year}>
+                            {year}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div id={DIV_ELEMENT_ID} className="graph" />
         </section>
     );
 }
