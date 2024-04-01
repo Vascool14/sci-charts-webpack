@@ -73,7 +73,7 @@ export default function PieChart() {
                 sciChartSurfaceRef.current?.delete();
             });
         };
-    }, [selectedYear]);
+    }, [selectedYear, selectedOption]);
 
     function handleYearChange(e: React.ChangeEvent<HTMLSelectElement>) {
         const newYear = parseInt(e.target.value);
