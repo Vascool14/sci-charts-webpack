@@ -1,53 +1,42 @@
-import React, { useContext, useEffect, useRef } from "react";
-// import { appTheme } from "scichart-example-dependencies";
-import { ContextInterface, DataInterface } from "../types";
+import React, { useContext, useEffect } from "react";
+import { ContextInterface, DataInterface, StateInterface } from "../types";
 import { Context } from "../Context";
 import { COLORS, SERIES_NAME } from "../utils/constants";
 import {
     ELegendOrientation,
-    ENumericFormat,
     LegendModifier,
     MouseWheelZoomModifier,
     NumericAxis,
     SciChartSurface,
+    DpiHelper,
     StackedColumnCollection,
     StackedColumnRenderableSeries,
     WaveAnimation,
     XyDataSeries,
     ZoomExtentsModifier,
-    ZoomPanModifier,
-    EventHandler,
-    SeriesSelectedArgs,
     ELegendPlacement,
 } from "scichart";
+import { HitTestInfo } from 'scichart/Charting/Visuals/RenderableSeries/HitTest/HitTestInfo';
 
 const DIV_ELEMENT_ID = "chart1";
 
-async function drawExample(DATA: DataInterface, option: string) {
-    // Create a SciChartSurface
-    const { wasmContext, sciChartSurface } = await SciChartSurface.create(DIV_ELEMENT_ID, {
-        // theme: appTheme.SciChartJsTheme
-    })
+async function drawExample(DATA: DataInterface, option: string, state: StateInterface, setState: Function) {
+    const { wasmContext, sciChartSurface } = await SciChartSurface.create(DIV_ELEMENT_ID);
 
     // Create XAxis, YAxis
-    sciChartSurface.xAxes.add(
-        new NumericAxis(wasmContext, {
-            labelFormat: ENumericFormat.Decimal,
-            labelPrecision: 0,
-            autoTicks: false,
-            majorDelta: 1,
-            minorDelta: 1,
-            drawMajorGridLines: false,
-            drawMinorGridLines: false
-        })
-    );
-    sciChartSurface.yAxes.add(
-        new NumericAxis(wasmContext, {
-            labelPrecision: 0
-        })
-    );
-    
-    const stackedColumnCollection = new StackedColumnCollection(wasmContext);
+    const xAxis = new NumericAxis(wasmContext);
+    xAxis.labelProvider.precision = 0;
+    sciChartSurface.xAxes.add(xAxis);
+    const yAxis = new NumericAxis(wasmContext);
+    yAxis.labelProvider.precision = 0;
+    sciChartSurface.yAxes.add(yAxis);
+
+    // Create a StackedColumnCollection instance
+    const Chart = new StackedColumnCollection(wasmContext);
+
+    // some options for the Chart
+    Chart.dataPointWidth = 0.8;
+    Chart.animation = new WaveAnimation({ duration: 300, fadeEffect: true });
 
     // Create some RenderableSeries - for each part of the stacked column
     for (let i = 0; i < DATA[option].yValues?.length; i++) {
@@ -58,27 +47,37 @@ async function drawExample(DATA: DataInterface, option: string) {
             opacity: 1,
             stackedGroupId: "StackedGroupId",
         });
-        stackedColumnCollection.add(rendSeries);
+        Chart.add(rendSeries);
     }
 
-    // To add the series to the chart, put them in a StackedColumnCollection
-    stackedColumnCollection.dataPointWidth = 0.6;
-    stackedColumnCollection.animation = new WaveAnimation({ duration: 300, fadeEffect: true });
+    // add Chart to the SciChartSurface
+    sciChartSurface.renderableSeries.add(Chart);
     
-    // on click events
-    const selected: EventHandler<SeriesSelectedArgs> = new EventHandler<SeriesSelectedArgs>();
-
-    // Add the Stacked Column collection to the chart
-    sciChartSurface.renderableSeries.add(stackedColumnCollection);
+    sciChartSurface.domCanvas2D.addEventListener('mousedown', (mouseEvent: MouseEvent) => {
+        const hitTestResults: HitTestInfo[] = Chart
+            .asArray()
+            .reduce((acc: HitTestInfo[], stackedColumnRenderableSeries: StackedColumnRenderableSeries) => {
+                const hitTestInfo = stackedColumnRenderableSeries.hitTestProvider.hitTest(
+                    mouseEvent.offsetX * DpiHelper.PIXEL_RATIO,
+                    mouseEvent.offsetY * DpiHelper.PIXEL_RATIO
+                );
+                acc.push(hitTestInfo);
+                return acc;
+            }, []);
+            
+        // update the year in the state
+        const newYear = DATA[option].xValues[hitTestResults[0].dataSeriesIndex];
+        setState({ ...state, selectedYear: newYear });
+    });
 
     // Add some interactivity modifiers
     sciChartSurface.chartModifiers.add(
         new ZoomExtentsModifier(), 
-        new ZoomPanModifier(), 
+        // new ZoomPanModifier(), // This is disabling the onClick functionality somehow
         new MouseWheelZoomModifier(),
     );
 
-    // Add a legend to the chart to show the series
+    // // Add a legend to the chart to show the series
     sciChartSurface.chartModifiers.add(
         new LegendModifier({
             placement: ELegendPlacement.TopLeft,
@@ -90,10 +89,6 @@ async function drawExample(DATA: DataInterface, option: string) {
             showCheckboxes: true
         })
     );
-
-    sciChartSurface.zoomExtents();
-
-    return { wasmContext, sciChartSurface, stackedColumnCollection };
 };
 
 // React component needed as our examples app is in React
@@ -101,28 +96,8 @@ export default function StackedColumnChart() {
     const { state, setState } = useContext<ContextInterface>(Context);
     const { DATA, allOptions, selectedOption } = state;
 
-    const sciChartSurfaceRef = useRef<SciChartSurface>();
-    const stackedColumnCollectionRef = useRef<StackedColumnCollection>();
-
     useEffect(() => {
-        const chartInitializationPromise = drawExample(DATA, selectedOption).then(res => {
-            sciChartSurfaceRef.current = res.sciChartSurface;
-            stackedColumnCollectionRef.current = res.stackedColumnCollection;
-        });
-
-        // Delete sciChartSurface on unmount component to prevent memory leak
-        return () => {
-            // check if chart is already initialized
-            if (sciChartSurfaceRef.current) {
-                sciChartSurfaceRef.current.delete();
-                return;
-            }
-
-            // else postpone deletion
-            chartInitializationPromise.then(() => {
-                sciChartSurfaceRef.current?.delete();
-            });
-        };
+        drawExample(DATA, selectedOption, state, setState);
     }, []);
     
     return (
@@ -134,7 +109,7 @@ export default function StackedColumnChart() {
                         value={selectedOption}
                         onChange={(e) => {
                             setState({ ...state, selectedOption: e.target.value });
-                            drawExample(DATA, e.target.value);
+                            // drawExample(DATA, e.target.value, state, setState);
                         }}
                     >
                         {allOptions.map((option: string) => (

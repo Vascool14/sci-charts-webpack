@@ -1,4 +1,4 @@
-export default function turnCSVToObject(csv: string): any {
+export default function turnCSVToObject(csv: string): {[key: string]:{ xValues: number[], yValues: number[][] }} {
     const [header, ...rows] = csv.split('\n').map(row => row.split(','));
 
     const DATA: {[key: string]:{ xValues: number[], yValues: number[][] }} = {};

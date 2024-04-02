@@ -7,8 +7,6 @@ import {
     EPieType,
     PieSegment,
     SciChartSurface,
-    ELegendOrientation,
-    ELegendPlacement,
 } from "scichart";
 
 const DIV_ELEMENT_ID = "chart2";
@@ -16,26 +14,23 @@ const DIV_ELEMENT_ID = "chart2";
 async function drawExample(DATA: DataInterface, option: string, year: number) {
     // Create a SciChartSurface
     const sciChartPieSurface = await SciChartPieSurface.create(DIV_ELEMENT_ID, {
-        // theme: new SciChartJsNavyTheme(),
         pieType: EPieType.Pie,
-        showLegend: true,
+        showLegend: false,
         showLegendSeriesMarkers: true,
         animateLegend: true,
         seriesSpacing: 1,
     });
 
-    // ensure the chart shows something, even if the year from another chart may be absent
+    // ensure the chart shows something, even if the year from a past chart may be absent
     const validYears = DATA[option].xValues;
     if (!validYears.includes(year)) {
+        console.log(`${year} has no data, now showing data for: ${validYears[validYears.length - 1]}`);
         year = validYears[validYears.length - 1];
-        console.log("Year not found, using last year: ", year);
-        
     }
-    // here "validYears" is the same as "xValues"
-
+    
     // get the yValues for the selected year
     var yValues:number[] = [];
-    const yValuesAllTime:any = DATA[option].yValues;
+    const yValuesAllTime:number[][] = DATA[option].yValues; 
     for (let i = 0; i < yValuesAllTime.length; i++) {
         yValues.push(yValuesAllTime[i][DATA[option].xValues.indexOf(year)]);
     }
@@ -86,7 +81,7 @@ export default function PieChart() {
             {/* select year */}
             <div style={{display: 'flex', gap:'1rem', marginBottom: '1rem', justifyContent: 'center'}}>
                 <h4>{state.selectedOption}</h4> 
-                <select style={{color: 'var(--text)', background: 'var(--bg)', marginTop: '6px'}}
+                <select style={{color: 'var(--text)', background: 'var(--bg)'}}
                     value={selectedYear}
                     onChange={(e) => handleYearChange(e)}
                 >

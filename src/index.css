@@ -130,6 +130,7 @@ nav {
     flex: 1;
     border-radius: 4;
     overflow: hidden;
+    cursor: pointer;
 }
 
 /* for screens smaller than 640px */
