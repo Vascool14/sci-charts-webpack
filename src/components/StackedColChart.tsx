@@ -109,7 +109,7 @@ export default function StackedColumnChart() {
                         value={selectedOption}
                         onChange={(e) => {
                             setState({ ...state, selectedOption: e.target.value });
-                            // drawExample(DATA, e.target.value, state, setState);
+                            drawExample(DATA, e.target.value, state, setState);
                         }}
                     >
                         {allOptions.map((option: string) => (
