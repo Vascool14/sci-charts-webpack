@@ -20,84 +20,84 @@ import { HitTestInfo } from 'scichart/Charting/Visuals/RenderableSeries/HitTest/
 
 const DIV_ELEMENT_ID = "chart1";
 
-async function drawExample(DATA: DataInterface, option: string, state: StateInterface, setState: Function) {
-    const { wasmContext, sciChartSurface } = await SciChartSurface.create(DIV_ELEMENT_ID);
-
-    // Create XAxis, YAxis
-    const xAxis = new NumericAxis(wasmContext);
-    xAxis.labelProvider.precision = 0;
-    sciChartSurface.xAxes.add(xAxis);
-    const yAxis = new NumericAxis(wasmContext);
-    yAxis.labelProvider.precision = 0;
-    sciChartSurface.yAxes.add(yAxis);
-
-    // Create a StackedColumnCollection instance
-    const Chart = new StackedColumnCollection(wasmContext);
-
-    // some options for the Chart
-    Chart.dataPointWidth = 0.8;
-    Chart.animation = new WaveAnimation({ duration: 300, fadeEffect: true });
-
-    // Create some RenderableSeries - for each part of the stacked column
-    for (let i = 0; i < DATA[option].yValues?.length; i++) {
-        const rendSeries = new StackedColumnRenderableSeries(wasmContext, {
-            dataSeries: new XyDataSeries(wasmContext, { xValues: DATA[option].xValues, yValues: DATA[option].yValues[i], dataSeriesName: SERIES_NAME[i] }),
-            fill: COLORS[i],
-            strokeThickness: 0,
-            opacity: 1,
-            stackedGroupId: "StackedGroupId",
-        });
-        Chart.add(rendSeries);
-    }
-
-    // add Chart to the SciChartSurface
-    sciChartSurface.renderableSeries.add(Chart);
-    
-    sciChartSurface.domCanvas2D.addEventListener('mousedown', (mouseEvent: MouseEvent) => {
-        const hitTestResults: HitTestInfo[] = Chart
-            .asArray()
-            .reduce((acc: HitTestInfo[], stackedColumnRenderableSeries: StackedColumnRenderableSeries) => {
-                const hitTestInfo = stackedColumnRenderableSeries.hitTestProvider.hitTest(
-                    mouseEvent.offsetX * DpiHelper.PIXEL_RATIO,
-                    mouseEvent.offsetY * DpiHelper.PIXEL_RATIO
-                );
-                acc.push(hitTestInfo);
-                return acc;
-            }, []);
-            
-        // update the year in the state
-        const newYear = DATA[option].xValues[hitTestResults[0].dataSeriesIndex];
-        setState({ ...state, selectedYear: newYear });
-    });
-
-    // Add some interactivity modifiers
-    sciChartSurface.chartModifiers.add(
-        new ZoomExtentsModifier(), 
-        // new ZoomPanModifier(), // This is disabling the onClick functionality somehow
-        new MouseWheelZoomModifier(),
-    );
-
-    // // Add a legend to the chart to show the series
-    sciChartSurface.chartModifiers.add(
-        new LegendModifier({
-            placement: ELegendPlacement.TopLeft,
-            orientation: ELegendOrientation.Vertical,
-            backgroundColor: 'var(--bg)',
-            textColor: 'var(--text)',
-            showLegend: true,
-            showSeriesMarkers: true,
-            showCheckboxes: true
-        })
-    );
-};
-
 // React component needed as our examples app is in React
 export default function StackedColumnChart() {
     const { state, setState } = useContext<ContextInterface>(Context);
     const { DATA, allOptions, selectedOption } = state;
 
+    async function drawExample(option: string = state.selectedOption) {
+        const { wasmContext, sciChartSurface } = await SciChartSurface.create(DIV_ELEMENT_ID);
+    
+        // Create XAxis, YAxis
+        const xAxis = new NumericAxis(wasmContext);
+        xAxis.labelProvider.precision = 0;
+        sciChartSurface.xAxes.add(xAxis);
+        const yAxis = new NumericAxis(wasmContext);
+        yAxis.labelProvider.precision = 0;
+        sciChartSurface.yAxes.add(yAxis);
+    
+        // Create a StackedColumnCollection instance
+        const Chart = new StackedColumnCollection(wasmContext);
+    
+        // some options for the Chart
+        Chart.dataPointWidth = 0.8;
+        Chart.animation = new WaveAnimation({ duration: 300, fadeEffect: true });
+    
+        // Create some RenderableSeries - for each part of the stacked column
+        for (let i = 0; i < DATA[option].yValues?.length; i++) {
+            const rendSeries = new StackedColumnRenderableSeries(wasmContext, {
+                dataSeries: new XyDataSeries(wasmContext, { xValues: DATA[option].xValues, yValues: DATA[option].yValues[i], dataSeriesName: SERIES_NAME[i] }),
+                fill: COLORS[i],
+                strokeThickness: 0,
+                opacity: 1,
+                stackedGroupId: "StackedGroupId",
+            });
+            Chart.add(rendSeries);
+        }
+    
+        // add Chart to the SciChartSurface
+        sciChartSurface.renderableSeries.add(Chart);
+        
+        sciChartSurface.domCanvas2D.addEventListener('mousedown', (mouseEvent: MouseEvent) => {
+            const hitTestResults: HitTestInfo[] = Chart
+                .asArray()
+                .reduce((acc: HitTestInfo[], stackedColumnRenderableSeries: StackedColumnRenderableSeries) => {
+                    const hitTestInfo = stackedColumnRenderableSeries.hitTestProvider.hitTest(
+                        mouseEvent.offsetX * DpiHelper.PIXEL_RATIO,
+                        mouseEvent.offsetY * DpiHelper.PIXEL_RATIO
+                    );
+                    acc.push(hitTestInfo);
+                    return acc;
+                }, []);
+                
+            // update the year in the state
+            const newYear = DATA[option].xValues[hitTestResults[0].dataSeriesIndex];
+            setState({ ...state, selectedYear: newYear, selectedOption: option});
+        });
+    
+        // Add some interactivity modifiers
+        sciChartSurface.chartModifiers.add(
+            new ZoomExtentsModifier(), 
+            // new ZoomPanModifier(), // This is disabling the onClick functionality somehow
+            new MouseWheelZoomModifier(),
+        );
+    
+        // // Add a legend to the chart to show the series
+        sciChartSurface.chartModifiers.add(
+            new LegendModifier({
+                placement: ELegendPlacement.TopLeft,
+                orientation: ELegendOrientation.Vertical,
+                backgroundColor: 'var(--bg)',
+                textColor: 'var(--text)',
+                showLegend: true,
+                showSeriesMarkers: true,
+                showCheckboxes: true
+            })
+        );
+    };
+
     useEffect(() => {
-        drawExample(DATA, selectedOption, state, setState);
+        drawExample();
     }, []);
     
     return (
@@ -109,7 +109,7 @@ export default function StackedColumnChart() {
                         value={selectedOption}
                         onChange={(e) => {
                             setState({ ...state, selectedOption: e.target.value });
-                            drawExample(DATA, e.target.value, state, setState);
+                            drawExample(e.target.value);
                         }}
                     >
                         {allOptions.map((option: string) => (
